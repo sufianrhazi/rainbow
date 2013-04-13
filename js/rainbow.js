@@ -81,12 +81,7 @@ window['Rainbow'] = (function() {
         /**
          * @type {null|string}
          */
-        global_class,
-
-        /**
-         * @type {null|Function}
-         */
-        onHighlight;
+        global_class;
 
     /**
      * cross browser get attribute for an element
@@ -613,100 +608,24 @@ window['Rainbow'] = (function() {
      * @param {number} i
      * @returns void
      */
-    function _highlightCodeBlock(code_blocks, i, onComplete) {
-        if (i < code_blocks.length) {
-            var block = code_blocks[i],
-                language = _getLanguageForBlock(block);
+    function _highlightCodeBlock(block) {
+        var language, code;
+        if (block.hasAttribute('data-language')) {
+            language = block.getAttribute('data-language').toLowerCase();
+            code = (block.textContent || block.innerText).trim();
 
-            if (!_hasClass(block, 'rainbow') && language) {
-                language = language.toLowerCase();
+            _addClass(block, 'rainbow');
 
-                _addClass(block, 'rainbow');
+            return _highlightBlockForLanguage(code, language, function(code) {
+                block.innerHTML = code;
 
-                return _highlightBlockForLanguage(block.innerHTML, language, function(code) {
-                    block.innerHTML = code;
-
-                    // reset the replacement arrays
-                    replacements = {};
-                    replacement_positions = {};
-
-                    // if you have a listener attached tell it that this block is now highlighted
-                    if (onHighlight) {
-                        onHighlight(block, language);
-                    }
-
-                    // process the next block
-                    setTimeout(function() {
-                        _highlightCodeBlock(code_blocks, ++i, onComplete);
-                    }, 0);
-                });
-            }
-            return _highlightCodeBlock(code_blocks, ++i, onComplete);
-        }
-
-        if (onComplete) {
-            onComplete();
+                // reset the replacement arrays
+                replacements = {};
+                replacement_positions = {};
+            });
         }
     }
 
-    /**
-     * start highlighting all the code blocks
-     *
-     * @returns void
-     */
-    function _highlight(node, onComplete) {
-
-        // the first argument can be an Event or a DOM Element
-        // I was originally checking instanceof Event but that makes it break
-        // when using mootools
-        //
-        // @see https://github.com/ccampbell/rainbow/issues/32
-        //
-        node = node && typeof node.getElementsByTagName == 'function' ? node : document;
-
-        var pre_blocks = node.getElementsByTagName('pre'),
-            code_blocks = node.getElementsByTagName('code'),
-            i,
-            final_pre_blocks = [],
-            final_code_blocks = [];
-
-        // first loop through all pre blocks to find which ones to highlight
-        // also strip whitespace
-        for (i = 0; i < pre_blocks.length; ++i) {
-
-            // strip whitespace around code tags when they are inside of a pre tag
-            // this makes the themes look better because you can't accidentally
-            // add extra linebreaks at the start and end
-            //
-            // when the pre tag contains a code tag then strip any extra whitespace
-            // for example
-            // <pre>
-            //      <code>var foo = true;</code>
-            // </pre>
-            //
-            // will become
-            // <pre><code>var foo = true;</code></pre>
-            //
-            // if you want to preserve whitespace you can use a pre tag on its own
-            // without a code tag inside of it
-            if (pre_blocks[i].getElementsByTagName('code').length) {
-                pre_blocks[i].innerHTML = pre_blocks[i].innerHTML.replace(/^\s+/, '').replace(/\s+$/, '');
-                continue;
-            }
-
-            // if the pre block has no code blocks then we are going to want to
-            // process it directly
-            final_pre_blocks.push(pre_blocks[i]);
-        }
-
-        // @see http://stackoverflow.com/questions/2735067/how-to-convert-a-dom-node-list-to-an-array-in-javascript
-        // we are going to process all <code> blocks
-        for (i = 0; i < code_blocks.length; ++i) {
-            final_code_blocks.push(code_blocks[i]);
-        }
-
-        _highlightCodeBlock(final_code_blocks.concat(final_pre_blocks), 0, onComplete);
-    }
 
     /**
      * public methods
@@ -734,15 +653,6 @@ window['Rainbow'] = (function() {
         },
 
         /**
-         * call back to let you do stuff in your app after a piece of code has been highlighted
-         *
-         * @param {Function} callback
-         */
-        onHighlight: function(callback) {
-            onHighlight = callback;
-        },
-
-        /**
          * method to set a global class that will be applied to all spans
          *
          * @param {string} class_name
@@ -754,41 +664,21 @@ window['Rainbow'] = (function() {
         /**
          * starts the magic rainbow
          *
+         * @param {Element} node
          * @returns void
          */
-        color: function() {
+        color: function(node) {
+            var code_blocks = node.getElementsByTagName('code'),
+                i;
 
-            // if you want to straight up highlight a string you can pass the string of code,
-            // the language, and a callback function
-            if (typeof arguments[0] == 'string') {
-                return _highlightBlockForLanguage(arguments[0], arguments[1], arguments[2]);
+            for (i = 0; i < code_blocks.length; ++i) {
+                _highlightCodeBlock(code_blocks[i]);
             }
-
-            // if you pass a callback function then we rerun the color function
-            // on all the code and call the callback function on complete
-            if (typeof arguments[0] == 'function') {
-                return _highlight(0, arguments[0]);
-            }
-
-            // otherwise we use whatever node you passed in with an optional
-            // callback function as the second parameter
-            _highlight(arguments[0], arguments[1]);
         }
     };
-}) ();
-
-/**
- * adds event listener to start highlighting
- */
-(function() {
-    if (document.addEventListener) {
-        return document.addEventListener('DOMContentLoaded', Rainbow.color, false);
-    }
-    window.attachEvent('onload', Rainbow.color);
 }) ();
 
 // When using Google closure compiler in advanced mode some methods
 // get renamed.  This keeps a public reference to these methods so they can
 // still be referenced from outside this library.
-Rainbow["onHighlight"] = Rainbow.onHighlight;
 Rainbow["addClass"] = Rainbow.addClass;
