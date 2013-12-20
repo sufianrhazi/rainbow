@@ -18,7 +18,7 @@
  * @preserve @version 1.2
  * @url rainbowco.de
  */
-window['Rainbow'] = (function() {
+window.Rainbow = (function() {
 
     /**
      * array of replacements to process at the end
@@ -289,9 +289,9 @@ window['Rainbow'] = (function() {
         ++match_counter;
 
         // treat match 0 the same way as name
-        if (!pattern['name'] && typeof pattern['matches'][0] == 'string') {
-            pattern['name'] = pattern['matches'][0];
-            delete pattern['matches'][0];
+        if (!pattern.name && typeof pattern.matches[0] == 'string') {
+            pattern.name = pattern.matches[0];
+            delete pattern.matches[0];
         }
 
         var replacement = match[0],
@@ -325,8 +325,8 @@ window['Rainbow'] = (function() {
          */
         var onMatchSuccess = function(replacement) {
                 // if this match has a name then wrap it in a span tag
-                if (pattern['name']) {
-                    replacement = _wrapCodeInSpan(pattern['name'], replacement);
+                if (pattern.name) {
+                    replacement = _wrapCodeInSpan(pattern.name, replacement);
                 }
 
                 // console.log('LEVEL', CURRENT_LEVEL, 'replace', match[0], 'with', replacement, 'at position', start_pos, 'to', end_pos);
@@ -357,7 +357,7 @@ window['Rainbow'] = (function() {
             // we run through them backwards because the match position of earlier
             // matches will not change depending on what gets replaced in later
             // matches
-            group_keys = keys(pattern['matches']),
+            group_keys = keys(pattern.matches),
 
             /**
              * callback for processing a sub group
@@ -381,8 +381,8 @@ window['Rainbow'] = (function() {
                     return processNextGroup();
                 }
 
-                var group = pattern['matches'][group_keys[i]],
-                    language = group['language'],
+                var group = pattern.matches[group_keys[i]],
+                    language = group.language,
 
                     /**
                      * process group is what group we should use to actually process
@@ -407,7 +407,7 @@ window['Rainbow'] = (function() {
                      * we treat the 'matches' part as the pattern and keep
                      * the name around to wrap it with later
                      */
-                    process_group = group['name'] && group['matches'] ? group['matches'] : group,
+                    process_group = group.name && group.matches ? group.matches : group,
 
                     /**
                      * takes the code block matched at this group, replaces it
@@ -439,7 +439,7 @@ window['Rainbow'] = (function() {
                 // the process group can be a single pattern or an array of patterns
                 // _processCodeWithPatterns always expects an array so we convert it here
                 _processCodeWithPatterns(block, process_group.length ? process_group : [process_group], function(code) {
-                    _replaceAndContinue(block, code, group['matches'] ? group['name'] : 0);
+                    _replaceAndContinue(block, code, group.matches ? group.name : 0);
                 });
             };
 
@@ -526,7 +526,7 @@ window['Rainbow'] = (function() {
         {
             // still have patterns to process, keep going
             if (i < patterns.length) {
-                return _processPattern(patterns[i]['pattern'], patterns[i], code, function() {
+                return _processPattern(patterns[i].pattern, patterns[i], code, function() {
                     _workOnPatterns(patterns, ++i);
                 });
             }
@@ -570,7 +570,7 @@ window['Rainbow'] = (function() {
                 ++replacement_counter;
                 var pos = positions[i],
                     replacement = replacements[CURRENT_LEVEL][pos];
-                code = _replaceAtPosition(pos, replacement['replace'], replacement['with'], code);
+                code = _replaceAtPosition(pos, replacement.replace, replacement['with'], code);
 
                 // process next function
                 var next = function() {
@@ -681,4 +681,4 @@ window['Rainbow'] = (function() {
 // When using Google closure compiler in advanced mode some methods
 // get renamed.  This keeps a public reference to these methods so they can
 // still be referenced from outside this library.
-Rainbow["addClass"] = Rainbow.addClass;
+Rainbow.addClass = Rainbow.addClass;
