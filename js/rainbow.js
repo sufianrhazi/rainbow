@@ -76,12 +76,7 @@ window.Rainbow = (function() {
         /**
          * @type {number}
          */
-        replacement_counter = 0,
-
-        /**
-         * @type {null|string}
-         */
-        global_class;
+        replacement_counter = 0;
 
     /**
      * cross browser get attribute for an element
@@ -241,7 +236,7 @@ window.Rainbow = (function() {
      * @returns {string}
      */
     function _wrapCodeInSpan(name, code) {
-        return '<span class="' + name.replace(/\./g, ' ') + (global_class ? ' ' + global_class : '') + '">' + code + '</span>';
+        return '<span class="' + name.replace(/\./g, ' ') + '">' + code + '</span>';
     }
 
     /**
@@ -653,27 +648,20 @@ window.Rainbow = (function() {
         },
 
         /**
-         * method to set a global class that will be applied to all spans
+         * manual control
          *
-         * @param {string} class_name
-         */
-        addClass: function(class_name) {
-            global_class = class_name;
-        },
-
-        /**
-         * starts the magic rainbow
-         *
-         * @param {Element} node
+         * @param {string} input
+         * @param {Function} callback
          * @returns void
          */
-        color: function(node) {
-            var code_blocks = node.getElementsByTagName('code'),
-                i;
+        highlight: function(input, language, callback) {
+            _highlightBlockForLanguage(input, language, function(html) {
+                callback(html);
 
-            for (i = 0; i < code_blocks.length; ++i) {
-                _highlightCodeBlock(code_blocks[i]);
-            }
+                // reset the replacement arrays
+                replacements = {};
+                replacement_positions = {};
+            });
         }
     };
 }) ();
